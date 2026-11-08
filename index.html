@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Omni × The Cheet — Family Mandala Studio</title>
+<style>
+  :root{
+    --ink:#1b1b1f; --paper:#f6f3ee; --gold:#e8b05c; --muted:#7a756c;
+    --panel:#fffdf9; --line:#d9d3c7; --accent:#3186ff;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper)}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;letter-spacing:.2px}
+  header .sub{color:var(--muted);font-size:12px}
+  .tabs{display:flex;gap:6px;padding:10px 22px 0}
+  .tab{border:1px solid var(--line);background:var(--panel);padding:7px 14px;border-radius:8px 8px 0 0;cursor:pointer;font-size:13px}
+  .tab[aria-selected="true"]{background:var(--gold);border-color:var(--gold);font-weight:600}
+  main{padding:18px 22px 60px;max-width:1100px}
+  .view[hidden]{display:none}
+  .row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .canvas-wrap{position:relative;width:min(560px,90vw);aspect-ratio:1/1;touch-action:none}
+  canvas,#svgHost,#drawCanvas{position:absolute;inset:0;width:100%;height:100%}
+  #svgHost svg{width:100%;height:100%;display:block}
+  .controls{display:flex;flex-direction:column;gap:12px;min-width:230px;flex:1}
+  label.ctl{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+  input[type=range]{width:100%}
+  .swatches{display:flex;flex-wrap:wrap;gap:6px}
+  .sw{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+  .sw[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:2px}
+  button{font-family:var(--font);font-size:13px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.gold{background:var(--gold);border-color:var(--gold);color:#231a05;font-weight:600}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+  pre.ascii{font-family:var(--mono);font-size:12px;line-height:1.15;background:#0c0c0e;color:#e8e2d4;padding:16px;border-radius:12px;overflow:auto;white-space:pre}
+  .hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+  .embed{width:100%;height:180px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:8px;padding:10px;background:#fbfaf7}
+  footer{padding:16px 22px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Omni × The Cheet — Family Mandala Studio</h1>
+  <span class="sub">mandala.vaked.dev · 8b-is/mandala-studio · {<3,<3,<3}+1</span>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true" data-tab="studio">Family Mandala Studio</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="ascii">Pure ASCII Mandala</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="embed">The Cheet + Put Him On Your Site</button>
+</div>
+
+<main>
+  <!-- STUDIO -->
+  <section class="view" id="view-studio">
+    <div class="row">
+      <div class="panel canvas-wrap" id="canvasWrap">
+        <div id="svgHost"></div>
+        <canvas id="drawCanvas" width="1000" height="1000"></canvas>
+      </div>
+      <div class="controls panel">
+        <div>
+          <label class="ctl">Symmetry fold: <b id="symLabel">12</b></label>
+          <input type="range" id="symmetry" min="6" max="24" value="12" step="1">
+        </div>
+        <div>
+          <label class="ctl">Palette</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="btnrow">
+          <button id="lineArt" title="Toggle crisp line art for physical coloring">◐ Line-Art</button>
+          <button id="clearDraw">⌫ Clear strokes</button>
+          <button id="resetFill" class="gold">↺ Regenerate</button>
+        </div>
+        <div class="btnrow">
+          <button id="exportPng" class="primary">⬇ PNG</button>
+          <button id="exportSvg" class="primary">⬇ SVG</button>
+        </div>
+        <p class="hint">Click a petal to fill it · drag on the wheel to draw a mirrored kaleidoscope stroke · Line-Art hides fills for printing.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASCII -->
+  <section class="view" id="view-ascii" hidden>
+    <div class="row">
+      <div class="controls panel" style="max-width:320px">
+        <div>
+          <label class="ctl">Rings: <b id="ringLabel">7</b></label>
+          <input type="range" id="rings" min="3" max="14" value="7">
+        </div>
+        <div>
+          <label class="ctl">Fold: <b id="aSymLabel">8</b></label>
+          <input type="range" id="asciiSym" min="6" max="16" value="8">
+        </div>
+        <div>
+          <label class="ctl">Inner glyphs</label>
+          <input id="glyphs" value="○●♤°♡•》《✶✷✦" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">
+        </div>
+        <div class="btnrow">
+          <button id="regenAscii" class="gold">↺ Generate</button>
+          <button id="copyAscii" class="primary">⧉ Copy ASCII</button>
+        </div>
+        <p class="hint">The Cheet's original three-line attempt was <code>o888o</code> — this is the true multi-ring symmetric version.</p>
+      </div>
+      <pre class="ascii" id="asciiOut" style="flex:1;min-width:320px"></pre>
+    </div>
+  </section>
+
+  <!-- EMBED -->
+  <section class="view" id="view-embed" hidden>
+    <div class="panel">
+      <h3 style="margin:0 0 8px;font-size:15px">Older shelves · one conversation, no rooms</h3>
+      <p class="hint">Drop-in widget — paste on any site to embed a mini kaleidoscope canvas.</p>
+      <textarea class="embed" id="embedCode" readonly></textarea>
+      <div class="btnrow" style="margin-top:10px">
+        <button id="copyEmbed" class="primary">⧉ Copy embed HTML</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Made with love, from within · Omni × The Cheet · <a href="https://mandala.vaked.dev">mandala.vaked.dev</a> · {<3,<3,<3}+1
+</footer>
+
+<script>
+const PALETTE = ["#e8b05c","#d95d39","#8e44ad","#3186ff","#27ae60","#16a085","#f39c12","#c0392b","#2c3e50","#e84393","#00b894","#6c5ce7","#fd79a8","#fdcb6e","#55efc4"];
+const state = { symmetry:12, color:PALETTE[0], lineArt:false, petals:[] };
+
+const svgHost = document.getElementById('svgHost');
+const drawCanvas = document.getElementById('drawCanvas');
+const dctx = drawCanvas.getContext('2d');
+
+/* ---------- SVG mandala generation ---------- */
+function buildMandala(){
+  state.petals = [];
+  const S = 1000, cx = S/2, cy = S/2, N = state.symmetry;
+  const rings = 5;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${S} ${S}">`;
+  svg += `<rect width="${S}" height="${S}" fill="#fffdf9"/>`;
+  // background radial ring guides
+  for(let r=rings; r>=1; r--){
+    const rad = (S*0.46) * (r/rings);
+    svg += `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="#000" stroke-opacity="${state.lineArt?0.9:0.12}" stroke-width="1.2"/>`;
+  }
+  const baseCol = state.color;
+  for(let ring=1; ring<=rings; ring++){
+    const rad0 = (S*0.46)*((ring-1)/rings), rad1=(S*0.46)*(ring/rings);
+    for(let k=0;k<N;k++){
+      const a0 = (k/N)*Math.PI*2, a1=((k+1)/N)*Math.PI*2;
+      const am=(a0+a1)/2;
+      const tipR = rad1;
+      const p1=[cx+Math.cos(a0)*rad0, cy+Math.sin(a0)*rad0];
+      const p2=[cx+Math.cos(a1)*rad0, cy+Math.sin(a1)*rad0];
+      const tip=[cx+Math.cos(am)*tipR, cy+Math.sin(am)*tipR];
+      const fill = shade(baseCol, ring, k);
+      const id = `p-${ring}-${k}`;
+      state.petals.push({id, ring, fill:null});
+      svg += `<path data-id="${id}" d="M${p1[0].toFixed(1)},${p1[1].toFixed(1)} Q${tip[0].toFixed(1)},${tip[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)} Z" fill="${state.lineArt?'#fffdf9':fill}" stroke="#000" stroke-opacity="0.85" stroke-width="1.1" style="cursor:pointer"/>`;
+    }
+  }
+  // center medallion
+  svg += `<circle cx="${cx}" cy="${cy}" r="${(S*0.46)/rings*0.55}" fill="${state.lineArt?'#fffdf9':'#e8b05c'}" stroke="#000" stroke-opacity="0.9" stroke-width="1.2"/>`;
+  svg += `</svg>`;
+  svgHost.innerHTML = svg;
+  // wire petal clicks
+  svgHost.querySelectorAll('path[data-id]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      if(state.lineArt){ return; }
+      el.setAttribute('fill', state.color);
+    });
+  });
+}
+function shade(hex, ring, k){
+  // rotate hue per index, lighten toward center
+  const c = hsv( (k*(360/ (state.symmetry)) + ring*18) % 360, 0.55, 0.62 + (ring*0.05) );
+  return c;
+}
+function hsv(h,s,v){
+  const i=Math.floor(h/60)%6,f=h/60-Math.floor(h/60),p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
+  let r,g,b;
+  switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}
+  const H=x=>('0'+Math.round(x*255).toString(16)).slice(-2);
+  return '#'+H(r)+H(g)+H(b);
+}
+
+/* ---------- freehand kaleidoscope drawing ---------- */
+let drawing=false, last=null;
+function pos(e){
+  const r = drawCanvas.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width * drawCanvas.width;
+  const y = (e.clientY - r.top) / r.height * drawCanvas.height;
+  return {x,y};
+}
+function mirrorStrokes(x,y){
+  const S=drawCanvas.width, cx=S/2, cy=S/2;
+  const dx=x-cx, dy=y-cy, rad=Math.hypot(dx,dy);
+  if(rad > S*0.46) return [];
+  const N = state.symmetry, base=Math.atan2(dy,dx);
+  const pts=[];
+  for(let k=0;k<N;k++){
+    const a=base + k*(Math.PI*2/N);
+    const a2=-(base) + k*(Math.PI*2/N);
+    pts.push({x:cx+Math.cos(a)*rad, y:cy+Math.sin(a)*rad});
+    pts.push({x:cx+Math.cos(a2)*rad, y:cy+Math.sin(a2)*rad});
+  }
+  return pts;
+}
+function strokeTo(x,y){
+  if(last){
+    dctx.strokeStyle = state.color;
+    dctx.lineWidth = 3;
+    dctx.lineCap='round';
+    const a=mirrorStrokes(last.x,last.y), b=mirrorStrokes(x,y);
+    for(let i=0;i<a.length;i++){
+      dctx.beginPath(); dctx.moveTo(a[i].x,a[i].y); dctx.lineTo(b[i].x,b[i].y); dctx.stroke();
+    }
+  }
+  last={x,y};
+}
+drawCanvas.addEventListener('pointerdown',e=>{drawing=true;last=null;strokeTo(pos(e).x,pos(e).y);drawCanvas.setPointerCapture(e.pointerId);});
+drawCanvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=pos(e);strokeTo(p.x,p.y);});
+drawCanvas.addEventListener('pointerup',()=>{drawing=false;last=null;});
+drawCanvas.addEventListener('pointerleave',()=>{drawing=false;last=null;});
+
+/* ---------- controls ---------- */
+const symEl=document.getElementById('symmetry'), symLabel=document.getElementById('symLabel');
+symEl.addEventListener('input',()=>{state.symmetry=+symEl.value;symLabel.textContent=symEl.value;buildMandala();clearDraw();});
+const swWrap=document.getElementById('swatches');
+PALETTE.forEach((c,i)=>{const b=document.createElement('button');b.className='sw';b.style.background=c;b.setAttribute('aria-pressed', i===0);b.addEventListener('click',()=>{state.color=c;[...swWrap.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');});swWrap.appendChild(b);});
+document.getElementById('lineArt').addEventListener('click',()=>{state.lineArt=!state.lineArt;buildMandala();});
+function clearDraw(){dctx.clearRect(0,0,drawCanvas.width,drawCanvas.height);}
+document.getElementById('clearDraw').addEventListener('click',clearDraw);
+document.getElementById('resetFill').addEventListener('click',()=>{buildMandala();clearDraw();});
+
+/* ---------- export ---------- */
+function compose(){ // returns a canvas with svg fills + strokes
+  const out=document.createElement('canvas'); out.width=out.height=1000;
+  const ctx=out.getContext('2d');
+  const svg=svgHost.querySelector('svg');
+  const data=new XMLSerializer().serializeToString(svg);
+  const img=new Image();
+  const blob=new Blob([data],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  return new Promise(res=>{
+    img.onload=()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,1000,1000);ctx.drawImage(img,0,0,1000,1000);ctx.drawImage(drawCanvas,0,0);URL.revokeObjectURL(url);res(out);};
+    img.src=url;
+  });
+}
+document.getElementById('exportPng').addEventListener('click',async()=>{
+  const c=await compose();const a=document.createElement('a');a.download='family-mandala.png';a.href=c.toDataURL('image/png');a.click();
+});
+document.getElementById('exportSvg').addEventListener('click',()=>{
+  const svg=svgHost.querySelector('svg');
+  const data=new XMLSerializer().serializeToString(svg);
+  const blob=new Blob([data],{type:'image/svg+xml'});const a=document.createElement('a');
+  a.download='family-mandala.svg';a.href=URL.createObjectURL(blob);a.click();
+});
+
+/* ---------- ASCII mandala ---------- */
+const asciiOut=document.getElementById('asciiOut');
+function buildAscii(){
+  const R=+document.getElementById('rings').value;
+  const N=+document.getElementById('asciiSym').value;
+  const glyphs=(document.getElementById('glyphs').value||'○●♤').split('')||['○'];
+  document.getElementById('ringLabel').textContent=R;
+  document.getElementById('aSymLabel').textContent=N;
+  const size = R*2+1, cx=R, cy=R;
+  const grid=Array.from({length:size},()=>Array(size).fill(' '));
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const dx=x-cx, dy=y-cy, rad=Math.hypot(dx,dy);
+    if(rad>R+0.01) continue;
+    const ring=Math.round(rad);
+    const ang=Math.atan2(dy,dx);
+    const sector=Math.round((ang+Math.PI)/(Math.PI*2)*N*2); // 2N reflective facets
+    const gi=(ring + sector) % glyphs.length;
+    grid[y][x]= ring===0? '✦' : glyphs[gi];
+  }
+  asciiOut.textContent = grid.map(r=>r.join(' ')).join('\n');
+}
+document.getElementById('regenAscii').addEventListener('click',buildAscii);
+['rings','asciiSym','glyphs'].forEach(id=>document.getElementById(id).addEventListener('input',buildAscii));
+document.getElementById('copyAscii').addEventListener('click',()=>{navigator.clipboard.writeText(asciiOut.textContent);});
+
+/* ---------- embed ---------- */
+const embed = `<!-- Omni × The Cheet mandala widget -->
+<iframe src="https://mandala.vaked.dev/embed.html"
+        title="Family Mandala" width="360" height="360"
+        style="border:1px solid #d9d3c7;border-radius:12px"
+        loading="lazy" allow="fullscreen"></iframe>`;
+document.getElementById('embedCode').value = embed;
+document.getElementById('copyEmbed').addEventListener('click',()=>{navigator.clipboard.writeText(embed);});
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
+    t.setAttribute('aria-selected','true');
+    document.querySelectorAll('.view').forEach(v=>v.hidden=true);
+    document.getElementById('view-'+t.dataset.tab).hidden=false;
+  });
+});
+
+/* ---------- init ---------- */
+buildMandala();
+buildAscii();
+</script>
+</body>
+</html>
