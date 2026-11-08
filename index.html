@@ -2,314 +2,410 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#100e1a" />
 <title>Omni × The Cheet — Family Mandala Studio</title>
+<meta name="description" content="A single-file family mandala studio: click-to-fill petals, mirrored kaleidoscope drawing, line-art for printing, PNG/SVG export, and a true multi-ring ASCII mandala generator." />
+<meta property="og:title" content="Omni × The Cheet — Family Mandala Studio" />
+<meta property="og:description" content="Colour, draw, print, embed. A kaleidoscope mandala studio for the whole family." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23100e1a'/%3E%3Cg stroke='%23e8b05c' stroke-width='2' fill='none'%3E%3Ccircle cx='32' cy='32' r='8'/%3E%3Ccircle cx='32' cy='32' r='16'/%3E%3Ccircle cx='32' cy='32' r='24'/%3E%3C/g%3E%3C/svg%3E" />
 <style>
   :root{
-    --ink:#1b1b1f; --paper:#f6f3ee; --gold:#e8b05c; --muted:#7a756c;
-    --panel:#fffdf9; --line:#d9d3c7; --accent:#3186ff;
-    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    --ink:#0f0d17; --paper:#0b0912; --panel:rgba(255,255,255,.045);
+    --panel-brd:rgba(255,255,255,.10); --gold:#e8b05c; --gold-2:#f2c987;
+    --rose:#e84393; --blue:#3186ff; --muted:#a9a2b8; --text:#efeaf6;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --radius:16px;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    :root{ scroll-behavior:smooth; }
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper)}
-  header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
-  header h1{font-size:18px;margin:0;letter-spacing:.2px}
-  header .sub{color:var(--muted);font-size:12px}
-  .tabs{display:flex;gap:6px;padding:10px 22px 0}
-  .tab{border:1px solid var(--line);background:var(--panel);padding:7px 14px;border-radius:8px 8px 0 0;cursor:pointer;font-size:13px}
-  .tab[aria-selected="true"]{background:var(--gold);border-color:var(--gold);font-weight:600}
-  main{padding:18px 22px 60px;max-width:1100px}
+  html,body{height:100%}
+  body{
+    margin:0;font-family:var(--font);color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 12% -8%, rgba(232,176,92,.16), transparent 60%),
+      radial-gradient(900px 600px at 92% 8%, rgba(49,134,255,.14), transparent 55%),
+      radial-gradient(700px 700px at 70% 108%, rgba(232,67,147,.14), transparent 60%),
+      var(--paper);
+    background-attachment:fixed;min-height:100%;
+  }
+  a{color:var(--gold-2);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  header.top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+    padding:22px clamp(16px,4vw,40px) 10px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .orb{width:44px;height:44px;border-radius:50%;flex:none;
+    background:conic-gradient(from 0deg,var(--gold),var(--rose),var(--blue),var(--gold));
+    box-shadow:0 0 30px rgba(232,176,92,.4);position:relative}
+  .orb::after{content:"";position:absolute;inset:6px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#241f33,#0b0912)}
+  @media(prefers-reduced-motion:no-preference){.orb{animation:spin 24s linear infinite}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  h1{font-size:clamp(17px,2.4vw,22px);margin:0;font-weight:700;letter-spacing:.2px;
+    background:linear-gradient(92deg,var(--gold-2),#fff 40%,var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:12px;margin-top:2px}
+
+  .tabs{display:flex;gap:8px;padding:6px clamp(16px,4vw,40px) 0;flex-wrap:wrap}
+  .tab{border:1px solid var(--panel-brd);background:var(--panel);color:var(--text);
+    padding:9px 16px;border-radius:12px;cursor:pointer;font-size:13px;
+    backdrop-filter:blur(8px);transition:.18s ease}
+  .tab:hover{border-color:rgba(232,176,92,.5)}
+  .tab[aria-selected="true"]{
+    background:linear-gradient(180deg,var(--gold-2),var(--gold));
+    color:#241a06;border-color:var(--gold);font-weight:700;
+    box-shadow:0 6px 22px rgba(232,176,92,.28)}
+
+  main{padding:20px clamp(16px,4vw,40px) 70px;max-width:1180px;margin:0 auto}
   .view[hidden]{display:none}
-  .row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
-  .canvas-wrap{position:relative;width:min(560px,90vw);aspect-ratio:1/1;touch-action:none}
-  canvas,#svgHost,#drawCanvas{position:absolute;inset:0;width:100%;height:100%}
-  #svgHost svg{width:100%;height:100%;display:block}
-  .controls{display:flex;flex-direction:column;gap:12px;min-width:230px;flex:1}
-  label.ctl{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
-  input[type=range]{width:100%}
-  .swatches{display:flex;flex-wrap:wrap;gap:6px}
-  .sw{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
-  .sw[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:2px}
-  button{font-family:var(--font);font-size:13px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
-  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  button.gold{background:var(--gold);border-color:var(--gold);color:#231a05;font-weight:600}
-  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
-  pre.ascii{font-family:var(--mono);font-size:12px;line-height:1.15;background:#0c0c0e;color:#e8e2d4;padding:16px;border-radius:12px;overflow:auto;white-space:pre}
-  .hint{font-size:12px;color:var(--muted);margin:6px 0 0}
-  .embed{width:100%;height:180px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:8px;padding:10px;background:#fbfaf7}
-  footer{padding:16px 22px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
-  a{color:var(--accent)}
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+
+  .panel{background:var(--panel);border:1px solid var(--panel-brd);border-radius:var(--radius);
+    padding:16px;backdrop-filter:blur(10px);box-shadow:0 20px 50px -30px #000}
+
+  .stage{position:relative;width:min(560px,92vw);aspect-ratio:1/1;padding:0;overflow:hidden;
+    border-radius:22px}
+  .stage::before{content:"";position:absolute;inset:0;border-radius:22px;
+    background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.05),transparent 70%);pointer-events:none}
+  #svgHost,#drawCanvas{position:absolute;inset:0;width:100%;height:100%}
+  #svgHost svg{width:100%;height:100%;display:block;filter:drop-shadow(0 8px 30px rgba(0,0,0,.4))}
+  #drawCanvas{touch-action:none;cursor:crosshair}
+
+  .controls{display:flex;flex-direction:column;gap:16px;min-width:250px;flex:1}
+  .field label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;
+    text-transform:uppercase;letter-spacing:.08em}
+  .field b{color:var(--gold-2)}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;
+    background:linear-gradient(90deg,var(--gold),var(--rose));outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+    background:#fff;border:2px solid var(--gold);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--gold);cursor:pointer}
+
+  .presets{display:flex;gap:8px;flex-wrap:wrap}
+  .preset{border:1px solid var(--panel-brd);background:var(--panel);border-radius:10px;
+    padding:6px 10px;font-size:12px;cursor:pointer;color:var(--text);transition:.15s}
+  .preset:hover{border-color:var(--gold)}
+
+  .swatches{display:flex;flex-wrap:wrap;gap:8px}
+  .sw{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.7);
+    box-shadow:0 0 0 1px rgba(0,0,0,.4);cursor:pointer;transition:transform .12s}
+  .sw:hover{transform:scale(1.12)}
+  .sw[aria-pressed="true"]{outline:3px solid #fff;outline-offset:2px}
+
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap}
+  button.act{font-family:var(--font);font-size:13px;padding:10px 14px;border-radius:11px;
+    border:1px solid var(--panel-brd);background:var(--panel);color:var(--text);cursor:pointer;
+    transition:.16s ease;display:inline-flex;align-items:center;gap:7px}
+  button.act:hover{border-color:rgba(232,176,92,.55);transform:translateY(-1px)}
+  button.act:active{transform:translateY(0)}
+  button.primary{background:linear-gradient(180deg,var(--blue),#2568d6);border-color:transparent;color:#fff;font-weight:600}
+  button.gold{background:linear-gradient(180deg,var(--gold-2),var(--gold));border-color:transparent;color:#241a06;font-weight:700}
+  button.ghost{background:transparent}
+
+  .hint{font-size:12px;color:var(--muted);margin:4px 0 0;line-height:1.5}
+  kbd{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.08);
+    border:1px solid var(--panel-brd);border-radius:5px;padding:1px 5px}
+
+  pre.ascii{font-family:var(--mono);font-size:12.5px;line-height:1.18;letter-spacing:2px;
+    background:linear-gradient(180deg,#0a0812,#0d0a18);color:#efe6d2;
+    padding:20px;border-radius:var(--radius);overflow:auto;white-space:pre;
+    border:1px solid var(--panel-brd);box-shadow:inset 0 0 60px rgba(232,176,92,.05)}
+  textarea.embed{width:100%;height:190px;font-family:var(--mono);font-size:12px;
+    border:1px solid var(--panel-brd);border-radius:12px;padding:12px;background:rgba(0,0,0,.35);
+    color:var(--text);resize:vertical}
+  input.txt{width:100%;padding:10px;border:1px solid var(--panel-brd);border-radius:10px;
+    background:rgba(0,0,0,.3);color:var(--text);font-family:var(--mono);font-size:13px}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:linear-gradient(180deg,#1c1830,#141020);color:#fff;border:1px solid var(--gold);
+    padding:11px 18px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;
+    transition:.25s ease;box-shadow:0 12px 40px -12px #000;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* petal sparkle */
+  .spark{position:absolute;pointer-events:none;border-radius:50%;
+    background:radial-gradient(circle,#fff,var(--gold) 40%,transparent 70%);
+    animation:pop .6s ease-out forwards}
+  @keyframes pop{from{opacity:.95;transform:scale(.2)}to{opacity:0;transform:scale(2.2)}}
+
+  footer{padding:22px clamp(16px,4vw,40px) 40px;color:var(--muted);font-size:12px;text-align:center;
+    border-top:1px solid var(--panel-brd);margin-top:20px}
+  .heart{color:var(--rose)}
+  @media(max-width:640px){.stage{width:min(94vw,520px)}}
 </style>
 </head>
 <body>
-<header>
-  <h1>Omni × The Cheet — Family Mandala Studio</h1>
-  <span class="sub">mandala.vaked.dev · 8b-is/mandala-studio · {<3,<3,<3}+1</span>
+<header class="top">
+  <div class="brand">
+    <div class="orb" aria-hidden="true"></div>
+    <div>
+      <h1>Omni × The Cheet — Family Mandala Studio</h1>
+      <div class="sub">mandala.vaked.dev · 8b-is/mandala-studio · {&lt;3,&lt;3,&lt;3}+1</div>
+    </div>
+  </div>
 </header>
 
-<div class="tabs" role="tablist">
-  <button class="tab" role="tab" aria-selected="true" data-tab="studio">Family Mandala Studio</button>
-  <button class="tab" role="tab" aria-selected="false" data-tab="ascii">Pure ASCII Mandala</button>
-  <button class="tab" role="tab" aria-selected="false" data-tab="embed">The Cheet + Put Him On Your Site</button>
+<div class="tabs" role="tablist" aria-label="Studio sections">
+  <button class="tab" role="tab" aria-selected="true" data-tab="studio">🎨 Family Mandala Studio</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="ascii">✦ Pure ASCII Mandala</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="embed">🐕 Put Him On Your Site</button>
 </div>
 
 <main>
-  <!-- STUDIO -->
   <section class="view" id="view-studio">
     <div class="row">
-      <div class="panel canvas-wrap" id="canvasWrap">
+      <div class="panel stage" id="stage">
         <div id="svgHost"></div>
-        <canvas id="drawCanvas" width="1000" height="1000"></canvas>
+        <canvas id="drawCanvas" width="1000" height="1000" aria-label="mandala drawing canvas"></canvas>
       </div>
       <div class="controls panel">
-        <div>
-          <label class="ctl">Symmetry fold: <b id="symLabel">12</b></label>
-          <input type="range" id="symmetry" min="6" max="24" value="12" step="1">
+        <div class="field">
+          <label>Symmetry fold · <b id="symLabel">12</b></label>
+          <input type="range" id="symmetry" min="6" max="24" value="12" step="1" aria-label="symmetry">
         </div>
-        <div>
-          <label class="ctl">Palette</label>
+        <div class="field">
+          <label>Palette preset</label>
+          <div class="presets" id="presets"></div>
+        </div>
+        <div class="field">
+          <label>Colour</label>
           <div class="swatches" id="swatches"></div>
         </div>
         <div class="btnrow">
-          <button id="lineArt" title="Toggle crisp line art for physical coloring">◐ Line-Art</button>
-          <button id="clearDraw">⌫ Clear strokes</button>
-          <button id="resetFill" class="gold">↺ Regenerate</button>
+          <button class="act ghost" id="lineArt" title="Toggle crisp line-art for physical colouring">◐ Line-Art</button>
+          <button class="act ghost" id="clearDraw">⌫ Clear strokes</button>
+          <button class="act gold" id="resetFill">↺ Regenerate</button>
+          <button class="act gold" id="shuffle" title="Shuffle colours">🎲 Shuffle</button>
         </div>
         <div class="btnrow">
-          <button id="exportPng" class="primary">⬇ PNG</button>
-          <button id="exportSvg" class="primary">⬇ SVG</button>
+          <button class="act primary" id="exportPng">⬇ PNG</button>
+          <button class="act primary" id="exportSvg">⬇ SVG</button>
         </div>
-        <p class="hint">Click a petal to fill it · drag on the wheel to draw a mirrored kaleidoscope stroke · Line-Art hides fills for printing.</p>
+        <p class="hint">Click a petal to fill it · drag on the wheel to draw a mirrored stroke ·
+          <kbd>R</kbd> regenerate · <kbd>L</kbd> line-art · <kbd>C</kbd> clear. Line-Art hides fills for printing.</p>
       </div>
     </div>
   </section>
 
-  <!-- ASCII -->
   <section class="view" id="view-ascii" hidden>
     <div class="row">
-      <div class="controls panel" style="max-width:320px">
-        <div>
-          <label class="ctl">Rings: <b id="ringLabel">7</b></label>
+      <div class="controls panel" style="max-width:330px">
+        <div class="field">
+          <label>Rings · <b id="ringLabel">7</b></label>
           <input type="range" id="rings" min="3" max="14" value="7">
         </div>
-        <div>
-          <label class="ctl">Fold: <b id="aSymLabel">8</b></label>
+        <div class="field">
+          <label>Fold · <b id="aSymLabel">8</b></label>
           <input type="range" id="asciiSym" min="6" max="16" value="8">
         </div>
-        <div>
-          <label class="ctl">Inner glyphs</label>
-          <input id="glyphs" value="○●♤°♡•》《✶✷✦" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px">
+        <div class="field">
+          <label>Inner glyphs</label>
+          <input class="txt" id="glyphs" value="○●♤°♡•》《✶✷✦">
         </div>
         <div class="btnrow">
-          <button id="regenAscii" class="gold">↺ Generate</button>
-          <button id="copyAscii" class="primary">⧉ Copy ASCII</button>
+          <button class="act gold" id="regenAscii">↺ Generate</button>
+          <button class="act primary" id="copyAscii">⧉ Copy ASCII</button>
         </div>
         <p class="hint">The Cheet's original three-line attempt was <code>o888o</code> — this is the true multi-ring symmetric version.</p>
       </div>
-      <pre class="ascii" id="asciiOut" style="flex:1;min-width:320px"></pre>
+      <pre class="ascii" id="asciiOut" style="flex:1;min-width:300px"></pre>
     </div>
   </section>
 
-  <!-- EMBED -->
   <section class="view" id="view-embed" hidden>
     <div class="panel">
-      <h3 style="margin:0 0 8px;font-size:15px">Older shelves · one conversation, no rooms</h3>
-      <p class="hint">Drop-in widget — paste on any site to embed a mini kaleidoscope canvas.</p>
+      <h3 style="margin:0 0 6px;font-size:16px">Older shelves · one conversation, no rooms</h3>
+      <p class="hint">Drop-in widget — paste this on any site to embed a live mini kaleidoscope.</p>
       <textarea class="embed" id="embedCode" readonly></textarea>
-      <div class="btnrow" style="margin-top:10px">
-        <button id="copyEmbed" class="primary">⧉ Copy embed HTML</button>
+      <div class="btnrow" style="margin-top:12px">
+        <button class="act primary" id="copyEmbed">⧉ Copy embed HTML</button>
+        <a class="act ghost" href="embed.html" target="_blank" rel="noopener">↗ Open widget</a>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  Made with love, from within · Omni × The Cheet · <a href="https://mandala.vaked.dev">mandala.vaked.dev</a> · {<3,<3,<3}+1
+  Made with <span class="heart">♥</span> from within · Omni × The Cheet ·
+  <a href="https://mandala.vaked.dev">mandala.vaked.dev</a> · {&lt;3,&lt;3,&lt;3}+1
 </footer>
+<div class="toast" id="toast"></div>
 
 <script>
-const PALETTE = ["#e8b05c","#d95d39","#8e44ad","#3186ff","#27ae60","#16a085","#f39c12","#c0392b","#2c3e50","#e84393","#00b894","#6c5ce7","#fd79a8","#fdcb6e","#55efc4"];
-const state = { symmetry:12, color:PALETTE[0], lineArt:false, petals:[] };
+const PRESETS = {
+  "Sunset":  ["#e8b05c","#f2c987","#d95d39","#e84393","#8e44ad","#f39c12","#c0392b","#fd79a8"],
+  "Ocean":   ["#3186ff","#16a085","#00b894","#6c5ce7","#2c3e50","#55efc4","#0984e3","#74b9ff"],
+  "Forest":  ["#27ae60","#2ecc71","#16a085","#f39c12","#8e7c3a","#55efc4","#a3cb38","#009432"],
+  "Gold":    ["#e8b05c","#f2c987","#f6d8a8","#c0392b","#8e5a1b","#ffd166","#b8860b","#fff2cc"],
+  "Cosmic":  ["#8e44ad","#6c5ce7","#e84393","#3186ff","#00b894","#a29bfe","#fd79a8","#2c3e50"]
+};
+let PALETTE = PRESETS["Sunset"].slice();
+const state = { symmetry:12, color:PALETTE[0], lineArt:false, hueShift:0 };
 
-const svgHost = document.getElementById('svgHost');
-const drawCanvas = document.getElementById('drawCanvas');
-const dctx = drawCanvas.getContext('2d');
+const svgHost=document.getElementById('svgHost');
+const drawCanvas=document.getElementById('drawCanvas');
+const dctx=drawCanvas.getContext('2d');
+const stage=document.getElementById('stage');
 
-/* ---------- SVG mandala generation ---------- */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+
+/* ---------- mandala SVG ---------- */
 function buildMandala(){
-  state.petals = [];
-  const S = 1000, cx = S/2, cy = S/2, N = state.symmetry;
-  const rings = 5;
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${S} ${S}">`;
-  svg += `<rect width="${S}" height="${S}" fill="#fffdf9"/>`;
-  // background radial ring guides
-  for(let r=rings; r>=1; r--){
-    const rad = (S*0.46) * (r/rings);
-    svg += `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="#000" stroke-opacity="${state.lineArt?0.9:0.12}" stroke-width="1.2"/>`;
-  }
-  const baseCol = state.color;
-  for(let ring=1; ring<=rings; ring++){
-    const rad0 = (S*0.46)*((ring-1)/rings), rad1=(S*0.46)*(ring/rings);
+  const S=1000,cx=S/2,cy=S/2,N=state.symmetry,R=5;
+  let svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${S} ${S}">`;
+  svg+=`<defs><radialGradient id="bg" cx="50%" cy="42%" r="70%">
+    <stop offset="0%" stop-color="#15121f"/><stop offset="100%" stop-color="#0b0912"/></radialGradient></defs>`;
+  svg+=`<rect width="${S}" height="${S}" fill="url(#bg)"/>`;
+  for(let r=R;r>=1;r--){const rad=(S*0.46)*(r/R);
+    svg+=`<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="#e8b05c"
+      stroke-opacity="${state.lineArt?0.85:0.10}" stroke-width="1.2"/>`;}
+  for(let ring=1;ring<=R;ring++){
+    const rad0=(S*0.46)*((ring-1)/R),rad1=(S*0.46)*(ring/R);
     for(let k=0;k<N;k++){
-      const a0 = (k/N)*Math.PI*2, a1=((k+1)/N)*Math.PI*2;
-      const am=(a0+a1)/2;
-      const tipR = rad1;
-      const p1=[cx+Math.cos(a0)*rad0, cy+Math.sin(a0)*rad0];
-      const p2=[cx+Math.cos(a1)*rad0, cy+Math.sin(a1)*rad0];
-      const tip=[cx+Math.cos(am)*tipR, cy+Math.sin(am)*tipR];
-      const fill = shade(baseCol, ring, k);
-      const id = `p-${ring}-${k}`;
-      state.petals.push({id, ring, fill:null});
-      svg += `<path data-id="${id}" d="M${p1[0].toFixed(1)},${p1[1].toFixed(1)} Q${tip[0].toFixed(1)},${tip[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)} Z" fill="${state.lineArt?'#fffdf9':fill}" stroke="#000" stroke-opacity="0.85" stroke-width="1.1" style="cursor:pointer"/>`;
+      const a0=(k/N)*Math.PI*2,a1=((k+1)/N)*Math.PI*2,am=(a0+a1)/2;
+      const p1=[cx+Math.cos(a0)*rad0,cy+Math.sin(a0)*rad0];
+      const p2=[cx+Math.cos(a1)*rad0,cy+Math.sin(a1)*rad0];
+      const tip=[cx+Math.cos(am)*rad1,cy+Math.sin(am)*rad1];
+      const fill=petalColor(ring,k);
+      const d=`M${p1[0].toFixed(1)},${p1[1].toFixed(1)} Q${tip[0].toFixed(1)},${tip[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)} Z`;
+      svg+=`<path data-id="p-${ring}-${k}" d="${d}" fill="${state.lineArt?'#0b0912':fill}"
+        stroke="#e8b05c" stroke-opacity="${state.lineArt?0.8:0.55}" stroke-width="1.05" style="cursor:pointer"/>`;
     }
   }
-  // center medallion
-  svg += `<circle cx="${cx}" cy="${cy}" r="${(S*0.46)/rings*0.55}" fill="${state.lineArt?'#fffdf9':'#e8b05c'}" stroke="#000" stroke-opacity="0.9" stroke-width="1.2"/>`;
-  svg += `</svg>`;
-  svgHost.innerHTML = svg;
-  // wire petal clicks
+  svg+=`<circle cx="${cx}" cy="${cy}" r="${(S*0.46)/R*0.6}" fill="${state.lineArt?'#0b0912':'#e8b05c'}"
+    stroke="#e8b05c" stroke-opacity="0.9" stroke-width="1.3"/>
+    <circle cx="${cx}" cy="${cy}" r="${(S*0.46)/R*0.28}" fill="#fff" fill-opacity="0.12"/>`;
+  svg+=`</svg>`;
+  svgHost.innerHTML=svg;
   svgHost.querySelectorAll('path[data-id]').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      if(state.lineArt){ return; }
-      el.setAttribute('fill', state.color);
+    el.addEventListener('click',e=>{
+      if(state.lineArt){toast('Line-Art is on — toggle it off to colour');return;}
+      el.setAttribute('fill',state.color);
+      sparkle(e.clientX,e.clientY);
     });
   });
 }
-function shade(hex, ring, k){
-  // rotate hue per index, lighten toward center
-  const c = hsv( (k*(360/ (state.symmetry)) + ring*18) % 360, 0.55, 0.62 + (ring*0.05) );
-  return c;
+function petalColor(ring,k){
+  const hue=((k*(360/state.symmetry)+ring*20+state.hueShift)%360+360)%360;
+  return hsv(hue,0.55,0.60+Math.min(0.28,ring*0.05));
 }
-function hsv(h,s,v){
-  const i=Math.floor(h/60)%6,f=h/60-Math.floor(h/60),p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
-  let r,g,b;
-  switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}
-  const H=x=>('0'+Math.round(x*255).toString(16)).slice(-2);
-  return '#'+H(r)+H(g)+H(b);
+function hsv(h,s,v){const i=Math.floor(h/60)%6,f=h/60-Math.floor(h/60),p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
+  let r,g,b;switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;
+    case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}
+  const H=x=>('0'+Math.round(x*255).toString(16)).slice(-2);return '#'+H(r)+H(g)+H(b);}
+
+function sparkle(x,y){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r=stage.getBoundingClientRect();
+  const s=document.createElement('div');s.className='spark';
+  const sz=26;s.style.width=s.style.height=sz+'px';
+  s.style.left=(x-r.left-sz/2)+'px';s.style.top=(y-r.top-sz/2)+'px';
+  stage.appendChild(s);setTimeout(()=>s.remove(),640);
 }
 
-/* ---------- freehand kaleidoscope drawing ---------- */
-let drawing=false, last=null;
-function pos(e){
-  const r = drawCanvas.getBoundingClientRect();
-  const x = (e.clientX - r.left) / r.width * drawCanvas.width;
-  const y = (e.clientY - r.top) / r.height * drawCanvas.height;
-  return {x,y};
-}
-function mirrorStrokes(x,y){
-  const S=drawCanvas.width, cx=S/2, cy=S/2;
-  const dx=x-cx, dy=y-cy, rad=Math.hypot(dx,dy);
-  if(rad > S*0.46) return [];
-  const N = state.symmetry, base=Math.atan2(dy,dx);
-  const pts=[];
-  for(let k=0;k<N;k++){
-    const a=base + k*(Math.PI*2/N);
-    const a2=-(base) + k*(Math.PI*2/N);
-    pts.push({x:cx+Math.cos(a)*rad, y:cy+Math.sin(a)*rad});
-    pts.push({x:cx+Math.cos(a2)*rad, y:cy+Math.sin(a2)*rad});
-  }
-  return pts;
-}
-function strokeTo(x,y){
-  if(last){
-    dctx.strokeStyle = state.color;
-    dctx.lineWidth = 3;
-    dctx.lineCap='round';
-    const a=mirrorStrokes(last.x,last.y), b=mirrorStrokes(x,y);
-    for(let i=0;i<a.length;i++){
-      dctx.beginPath(); dctx.moveTo(a[i].x,a[i].y); dctx.lineTo(b[i].x,b[i].y); dctx.stroke();
-    }
-  }
-  last={x,y};
-}
-drawCanvas.addEventListener('pointerdown',e=>{drawing=true;last=null;strokeTo(pos(e).x,pos(e).y);drawCanvas.setPointerCapture(e.pointerId);});
-drawCanvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=pos(e);strokeTo(p.x,p.y);});
-drawCanvas.addEventListener('pointerup',()=>{drawing=false;last=null;});
-drawCanvas.addEventListener('pointerleave',()=>{drawing=false;last=null;});
+/* ---------- freehand kaleidoscope ---------- */
+let drawing=false,last=null;
+function pos(e){const r=drawCanvas.getBoundingClientRect();
+  return {x:(e.clientX-r.left)/r.width*drawCanvas.width,y:(e.clientY-r.top)/r.height*drawCanvas.height};}
+function mirror(x,y){const S=drawCanvas.width,cx=S/2,cy=S/2,dx=x-cx,dy=y-cy,rad=Math.hypot(dx,dy);
+  if(rad>S*0.46)return[];const N=state.symmetry,b=Math.atan2(dy,dx),o=[];
+  for(let k=0;k<N;k++){const a=b+k*2*Math.PI/N,a2=-b+k*2*Math.PI/N;
+    o.push([cx+Math.cos(a)*rad,cy+Math.sin(a)*rad]);o.push([cx+Math.cos(a2)*rad,cy+Math.sin(a2)*rad]);}
+  return o;}
+function seg(x,y){if(last){dctx.strokeStyle=state.color;dctx.lineWidth=3;dctx.lineCap='round';dctx.lineJoin='round';
+  const a=mirror(last.x,last.y),b=mirror(x,y);for(let i=0;i<a.length;i++){
+    dctx.beginPath();dctx.moveTo(a[i][0],a[i][1]);dctx.lineTo(b[i][0],b[i][1]);dctx.stroke();}}last={x,y};}
+drawCanvas.addEventListener('pointerdown',e=>{drawing=true;last=null;seg(pos(e).x,pos(e).y);drawCanvas.setPointerCapture(e.pointerId);});
+drawCanvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=pos(e);seg(p.x,p.y);});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>drawCanvas.addEventListener(ev,()=>{drawing=false;last=null;}));
 
 /* ---------- controls ---------- */
-const symEl=document.getElementById('symmetry'), symLabel=document.getElementById('symLabel');
+const symEl=document.getElementById('symmetry'),symLabel=document.getElementById('symLabel');
 symEl.addEventListener('input',()=>{state.symmetry=+symEl.value;symLabel.textContent=symEl.value;buildMandala();clearDraw();});
-const swWrap=document.getElementById('swatches');
-PALETTE.forEach((c,i)=>{const b=document.createElement('button');b.className='sw';b.style.background=c;b.setAttribute('aria-pressed', i===0);b.addEventListener('click',()=>{state.color=c;[...swWrap.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');});swWrap.appendChild(b);});
+
+const presetsWrap=document.getElementById('presets');
+Object.keys(PRESETS).forEach(name=>{const b=document.createElement('button');b.className='preset';b.textContent=name;
+  b.addEventListener('click',()=>{PALETTE=PRESETS[name].slice();state.color=PALETTE[0];buildSwatches();buildMandala();toast('Palette: '+name);});
+  presetsWrap.appendChild(b);});
+
+function buildSwatches(){
+  const w=document.getElementById('swatches');w.innerHTML='';
+  PALETTE.forEach((c,i)=>{const b=document.createElement('button');b.className='sw';b.style.background=c;
+    b.setAttribute('aria-label','colour '+c);b.setAttribute('aria-pressed',c===state.color);
+    b.addEventListener('click',()=>{state.color=c;[...w.children].forEach(x=>x.setAttribute('aria-pressed','false'));
+      b.setAttribute('aria-pressed','true');});w.appendChild(b);});
+}
 document.getElementById('lineArt').addEventListener('click',()=>{state.lineArt=!state.lineArt;buildMandala();});
 function clearDraw(){dctx.clearRect(0,0,drawCanvas.width,drawCanvas.height);}
 document.getElementById('clearDraw').addEventListener('click',clearDraw);
 document.getElementById('resetFill').addEventListener('click',()=>{buildMandala();clearDraw();});
+document.getElementById('shuffle').addEventListener('click',()=>{state.hueShift=(state.hueShift+37+Math.floor(Math.random()*90))%360;buildMandala();toast('Shuffled ✦');});
 
 /* ---------- export ---------- */
-function compose(){ // returns a canvas with svg fills + strokes
-  const out=document.createElement('canvas'); out.width=out.height=1000;
-  const ctx=out.getContext('2d');
-  const svg=svgHost.querySelector('svg');
-  const data=new XMLSerializer().serializeToString(svg);
-  const img=new Image();
-  const blob=new Blob([data],{type:'image/svg+xml;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  return new Promise(res=>{
-    img.onload=()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,1000,1000);ctx.drawImage(img,0,0,1000,1000);ctx.drawImage(drawCanvas,0,0);URL.revokeObjectURL(url);res(out);};
-    img.src=url;
-  });
-}
-document.getElementById('exportPng').addEventListener('click',async()=>{
-  const c=await compose();const a=document.createElement('a');a.download='family-mandala.png';a.href=c.toDataURL('image/png');a.click();
-});
-document.getElementById('exportSvg').addEventListener('click',()=>{
-  const svg=svgHost.querySelector('svg');
-  const data=new XMLSerializer().serializeToString(svg);
-  const blob=new Blob([data],{type:'image/svg+xml'});const a=document.createElement('a');
-  a.download='family-mandala.svg';a.href=URL.createObjectURL(blob);a.click();
-});
+function compose(){const out=document.createElement('canvas');out.width=out.height=1000;const ctx=out.getContext('2d');
+  const svg=svgHost.querySelector('svg');const data=new XMLSerializer().serializeToString(svg);
+  const blob=new Blob([data],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);
+  return new Promise(res=>{const img=new Image();img.onload=()=>{ctx.drawImage(img,0,0,1000,1000);
+    ctx.drawImage(drawCanvas,0,0);URL.revokeObjectURL(url);res(out);};img.src=url;});}
+document.getElementById('exportPng').addEventListener('click',async()=>{const c=await compose();
+  const a=document.createElement('a');a.download='family-mandala.png';a.href=c.toDataURL('image/png');a.click();toast('PNG saved');});
+document.getElementById('exportSvg').addEventListener('click',()=>{const svg=svgHost.querySelector('svg');
+  const data=new XMLSerializer().serializeToString(svg);const blob=new Blob([data],{type:'image/svg+xml'});
+  const a=document.createElement('a');a.download='family-mandala.svg';a.href=URL.createObjectURL(blob);a.click();
+  toast('SVG saved (petals; strokes are PNG-only)');});
 
-/* ---------- ASCII mandala ---------- */
+/* ---------- ASCII ---------- */
 const asciiOut=document.getElementById('asciiOut');
 function buildAscii(){
-  const R=+document.getElementById('rings').value;
-  const N=+document.getElementById('asciiSym').value;
-  const glyphs=(document.getElementById('glyphs').value||'○●♤').split('')||['○'];
-  document.getElementById('ringLabel').textContent=R;
-  document.getElementById('aSymLabel').textContent=N;
-  const size = R*2+1, cx=R, cy=R;
-  const grid=Array.from({length:size},()=>Array(size).fill(' '));
-  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
-    const dx=x-cx, dy=y-cy, rad=Math.hypot(dx,dy);
-    if(rad>R+0.01) continue;
-    const ring=Math.round(rad);
-    const ang=Math.atan2(dy,dx);
-    const sector=Math.round((ang+Math.PI)/(Math.PI*2)*N*2); // 2N reflective facets
-    const gi=(ring + sector) % glyphs.length;
-    grid[y][x]= ring===0? '✦' : glyphs[gi];
-  }
-  asciiOut.textContent = grid.map(r=>r.join(' ')).join('\n');
+  const R=+document.getElementById('rings').value,N=+document.getElementById('asciiSym').value;
+  const gl=(document.getElementById('glyphs').value||'○●♤').split('');if(!gl.length)gl.push('○');
+  document.getElementById('ringLabel').textContent=R;document.getElementById('aSymLabel').textContent=N;
+  const size=R*2+1,cx=R,cy=R;const g=Array.from({length:size},()=>Array(size).fill(' '));
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){const dx=x-cx,dy=y-cy,rad=Math.hypot(dx,dy);
+    if(rad>R+0.01)continue;const ring=Math.round(rad);
+    const sector=Math.round((Math.atan2(dy,dx)+Math.PI)/(Math.PI*2)*N*2);
+    g[y][x]=ring===0?'✦':gl[((ring+sector)%gl.length+gl.length)%gl.length];}
+  asciiOut.textContent=g.map(r=>r.join(' ')).join('\n');
 }
 document.getElementById('regenAscii').addEventListener('click',buildAscii);
 ['rings','asciiSym','glyphs'].forEach(id=>document.getElementById(id).addEventListener('input',buildAscii));
-document.getElementById('copyAscii').addEventListener('click',()=>{navigator.clipboard.writeText(asciiOut.textContent);});
+document.getElementById('copyAscii').addEventListener('click',()=>{navigator.clipboard.writeText(asciiOut.textContent).then(()=>toast('ASCII copied ✦'));});
 
 /* ---------- embed ---------- */
-const embed = `<!-- Omni × The Cheet mandala widget -->
+const embed=`<!-- Omni × The Cheet mandala widget -->
 <iframe src="https://mandala.vaked.dev/embed.html"
         title="Family Mandala" width="360" height="360"
-        style="border:1px solid #d9d3c7;border-radius:12px"
+        style="border:1px solid rgba(255,255,255,.15);border-radius:12px"
         loading="lazy" allow="fullscreen"></iframe>`;
-document.getElementById('embedCode').value = embed;
-document.getElementById('copyEmbed').addEventListener('click',()=>{navigator.clipboard.writeText(embed);});
+document.getElementById('embedCode').value=embed;
+document.getElementById('copyEmbed').addEventListener('click',()=>{navigator.clipboard.writeText(embed).then(()=>toast('Embed copied ⧉'));});
 
 /* ---------- tabs ---------- */
-document.querySelectorAll('.tab').forEach(t=>{
-  t.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
-    t.setAttribute('aria-selected','true');
-    document.querySelectorAll('.view').forEach(v=>v.hidden=true);
-    document.getElementById('view-'+t.dataset.tab).hidden=false;
-  });
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected','false'));
+  t.setAttribute('aria-selected','true');
+  document.querySelectorAll('.view').forEach(v=>v.hidden=true);
+  document.getElementById('view-'+t.dataset.tab).hidden=false;}));
+
+/* ---------- keyboard ---------- */
+addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea'))return;
+  const k=e.key.toLowerCase();
+  if(k==='r'){document.getElementById('resetFill').click();}
+  else if(k==='l'){document.getElementById('lineArt').click();}
+  else if(k==='c'){clearDraw();}
+  else if(k==='s'){document.getElementById('shuffle').click();}
 });
 
 /* ---------- init ---------- */
-buildMandala();
-buildAscii();
+buildSwatches();buildMandala();buildAscii();
 </script>
 </body>
 </html>

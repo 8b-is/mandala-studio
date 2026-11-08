@@ -1,12 +1,28 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mandala</title>
-<style>html,body{margin:0;height:100%;background:#fffdf9}canvas{width:100%;height:100%;touch-action:none;cursor:crosshair}</style>
-</head><body><canvas id="c"></canvas><script>
-const c=document.getElementById('c'),x=c.getContext('2d');let N=12,last=null,drawing=false;const col='#e8b05c';
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mandala widget</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:
+    radial-gradient(circle at 50% 40%,#15121f,#0b0912)}
+  canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+  .hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#a9a2b8;
+    font:12px ui-sans-serif,system-ui;pointer-events:none}
+</style></head><body>
+<canvas id="c"></canvas><div class="hint">drag to draw · mirrored kaleidoscope</div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+let N=12,last=null,drawing=false,hue=0;
+const palette=['#e8b05c','#f2c987','#e84393','#3186ff','#8e44ad','#00b894','#d95d39','#fd79a8'];
 function fit(){c.width=c.height=Math.min(innerWidth,innerHeight);}addEventListener('resize',fit);fit();
-function pts(px,py){const S=c.width,cx=S/2,cy=S/2,dx=px-cx,dy=py-cy,rad=Math.hypot(dx,dy),b=Math.atan2(dy,dx),o=[];for(let k=0;k<N;k++){o.push([cx+Math.cos(b+k*2*Math.PI/N)*rad,cy+Math.sin(b+k*2*Math.PI/N)*rad]);o.push([cx+Math.cos(-b+k*2*Math.PI/N)*rad,cy+Math.sin(-b+k*2*Math.PI/N)*rad]);}return o;}
-function seg(a,b){if(!a)return;const p=pts(a[0],a[1]),q=pts(b[0],b[1]);x.strokeStyle=col;x.lineWidth=2.5;x.lineCap='round';for(let i=0;i<p.length;i++){x.beginPath();x.moveTo(p[i][0],p[i][1]);x.lineTo(q[i][0],q[i][1]);x.stroke();}}
+function pts(px,py){const S=c.width,cx=S/2,cy=S/2,dx=px-cx,dy=py-cy,rad=Math.hypot(dx,dy),
+  b=Math.atan2(dy,dx),o=[];if(rad>S*0.48)return o;
+  for(let k=0;k<N;k++){const a=b+k*2*Math.PI/N,a2=-b+k*2*Math.PI/N;
+    o.push([cx+Math.cos(a)*rad,cy+Math.sin(a)*rad]);o.push([cx+Math.cos(a2)*rad,cy+Math.sin(a2)*rad]);}return o;}
+function seg(a,b){if(!a)return;const p=pts(a[0],a[1]),q=pts(b[0],b[1]);
+  x.strokeStyle=palette[Math.floor(hue)%palette.length];x.lineWidth=2.6;x.lineCap='round';
+  for(let i=0;i<p.length;i++){x.beginPath();x.moveTo(p[i][0],p[i][1]);x.lineTo(q[i][0],q[i][1]);x.stroke();}}
 function P(e){const r=c.getBoundingClientRect();return[(e.clientX-r.left)/r.width*c.width,(e.clientY-r.top)/r.height*c.height];}
-c.addEventListener('pointerdown',e=>{drawing=true;last=P(e);seg(last,last);c.setPointerCapture(e.pointerId)});
+c.addEventListener('pointerdown',e=>{drawing=true;last=P(e);hue+=7;seg(last,last);c.setPointerCapture(e.pointerId)});
 c.addEventListener('pointermove',e=>{if(!drawing)return;const p=P(e);seg(last,p);last=p});
 addEventListener('pointerup',()=>{drawing=false;last=null});
 </script></body></html>
